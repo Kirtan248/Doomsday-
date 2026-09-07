@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#12140F">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MCU Order">
+<title>MCU Watch Order</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+
+  :root{
+    --bg-page:#0D0F0A;
+    --bg-row-a:#1D2318;
+    --bg-row-b:#161B11;
+    --text-main:#EAE5D4;
+    --text-soft:#8B9280;
+    --watched-bg:#2F7A45;
+    --watched-text:#F5F7EE;
+    --next-bg:#D8A643;
+    --next-text:#1B1506;
+    --nav-bg:#181D13;
+    --accent:#3C8C4E;
+    --gold:#D8A643;
+    --radius:18px;
+    --shadow:0 3px 10px rgba(0,0,0,0.4);
+    --edge:rgba(255,255,255,0.05);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:'Nunito',-apple-system,'Segoe UI',system-ui,sans-serif;
+    background:var(--bg-page);
+    color:var(--text-main);
+    -webkit-font-smoothing:antialiased;
+  }
+  #app{max-width:560px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:var(--bg-page);}
+
+  header.top{padding:26px 20px 14px;position:sticky;top:0;background:var(--bg-page);z-index:5;}
+  header.top h1{font-size:22px;font-weight:800;letter-spacing:-0.02em;}
+  header.top .sub{font-size:13px;color:var(--text-soft);margin-top:2px;font-weight:700;}
+
+  .progress-wrap{margin-top:16px;display:flex;align-items:center;gap:10px;}
+  .progress-track{flex:1;height:8px;background:var(--bg-row-b);border-radius:999px;overflow:hidden;}
+  .progress-fill{height:100%;width:0%;background:var(--watched-bg);border-radius:999px;transition:width .35s ease;box-shadow:0 0 8px rgba(63,180,100,0.6);}
+  .progress-label{font-size:12px;font-weight:800;color:var(--text-soft);white-space:nowrap;}
+
+  main.list{flex:1;padding:8px 16px 130px;display:flex;flex-direction:column;gap:10px;}
+
+  .row{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:15px 16px;border-radius:var(--radius);
+    background:var(--bg-row-a);
+    box-shadow:var(--shadow);
+    border:1px solid var(--edge);
+    transition:background .25s ease, transform .12s ease, border-color .25s ease;
+  }
+  .row:active{transform:scale(0.985);}
+  .row--a{background:var(--bg-row-a);}
+  .row--b{background:var(--bg-row-b);}
+  .row--watched{background:var(--watched-bg);color:var(--watched-text);border-color:rgba(150,230,170,0.35);box-shadow:0 3px 14px rgba(47,122,69,0.35);}
+  .row--next{background:var(--next-bg);color:var(--next-text);border-color:rgba(255,224,150,0.5);box-shadow:0 3px 14px rgba(216,166,67,0.3);}
+
+  .row-left{display:flex;align-items:center;gap:12px;min-width:0;flex-wrap:wrap;}
+  .row-num{font-size:12px;font-weight:800;opacity:.55;min-width:20px;flex-shrink:0;}
+  .row-title{font-size:15.5px;font-weight:700;line-height:1.3;}
+  .row-chip{
+    font-size:9.5px;font-weight:800;letter-spacing:.05em;
+    background:rgba(32,24,4,0.18);
+    padding:3px 8px;border-radius:999px;flex-shrink:0;
+  }
+
+  .row-toggle{
+    width:34px;height:34px;border-radius:50%;flex-shrink:0;
+    border:2px solid currentColor;background:transparent;
+    display:flex;align-items:center;justify-content:center;
+    opacity:.55;cursor:pointer;transition:all .15s ease;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .row-toggle:active{transform:scale(0.88);}
+  .row--watched .row-toggle{background:#fff;border-color:#fff;opacity:1;}
+  .row--watched .row-toggle svg{stroke:var(--watched-bg);width:17px;height:17px;}
+  .row--next .row-toggle{opacity:.7;}
+  .row-toggle svg{width:16px;height:16px;stroke:currentColor;}
+
+  .celebrate{
+    background:var(--watched-bg);color:#fff;text-align:center;
+    padding:13px;border-radius:var(--radius);font-weight:800;font-size:13.5px;
+  }
+
+  .finale-card{
+    margin-top:6px;padding:26px 16px;border-radius:20px;
+    background:linear-gradient(160deg,#1C2216,#0A0C07);
+    border:1px solid rgba(216,166,67,0.28);
+    box-shadow:0 0 0 1px rgba(0,0,0,0.3), 0 12px 30px rgba(0,0,0,0.5), 0 0 26px rgba(47,122,69,0.18);
+    display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;
+  }
+  .finale-eyebrow{font-size:11px;font-weight:800;letter-spacing:.09em;color:var(--gold);text-transform:uppercase;}
+  .finale-title{font-size:20px;font-weight:900;color:var(--text-main);text-shadow:0 0 18px rgba(80,200,110,0.35);}
+
+  .reset-row{text-align:center;margin-top:2px;}
+  .reset-link{
+    background:none;border:none;font-size:12px;font-weight:700;
+    color:var(--text-soft);text-decoration:underline;padding:8px;cursor:pointer;
+  }
+  .reset-armed{color:#a5352f !important;}
+
+  .skeleton-row{height:58px;border-radius:var(--radius);
+    background:linear-gradient(90deg,var(--bg-row-a) 25%,var(--bg-row-b) 37%,var(--bg-row-a) 63%);
+    background-size:400% 100%;animation:pulse 1.4s ease infinite;}
+  @keyframes pulse{0%{background-position:100% 0;}100%{background-position:0% 0;}}
+
+  nav.bottom-nav{
+    position:fixed;bottom:0;left:0;right:0;
+    display:flex;justify-content:center;
+    padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+    z-index:10;pointer-events:none;
+  }
+  .nav-inner{
+    max-width:528px;width:100%;display:flex;gap:6px;
+    background:var(--nav-bg);border-radius:22px;padding:8px;
+    border:1px solid var(--edge);
+    box-shadow:0 8px 26px rgba(0,0,0,0.55), 0 0 20px rgba(47,122,69,0.12);
+    pointer-events:auto;
+  }
+  .nav-btn{
+    flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+    padding:9px 0;border:none;background:transparent;border-radius:16px;
+    color:var(--text-soft);font-size:11.5px;font-weight:800;cursor:pointer;
+    transition:all .18s ease;-webkit-tap-highlight-color:transparent;
+  }
+  .nav-btn svg{width:21px;height:21px;stroke:currentColor;}
+  .nav-btn.active{background:var(--accent);color:#fff;}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <h1 id="pageTitle">Movies</h1>
+    <p class="sub">Watch order before Avengers: Doomsday</p>
+    <div class="progress-wrap">
+      <div class="progress-track"><div id="progressFill" class="progress-fill"></div></div>
+      <span id="progressLabel" class="progress-label">0 / 0 watched</span>
+    </div>
+  </header>
+
+  <main id="list" class="list">
+    <div class="skeleton-row"></div>
+    <div class="skeleton-row"></div>
+    <div class="skeleton-row"></div>
+    <div class="skeleton-row"></div>
+    <div class="skeleton-row"></div>
+  </main>
+
+  <nav class="bottom-nav">
+    <div class="nav-inner">
+      <button class="nav-btn active" id="navMovies" onclick="switchTab('movies')">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="3"/>
+          <line x1="3" y1="8.5" x2="7" y2="8.5"/>
+          <line x1="3" y1="15.5" x2="7" y2="15.5"/>
+          <line x1="17" y1="8.5" x2="21" y2="8.5"/>
+          <line x1="17" y1="15.5" x2="21" y2="15.5"/>
+          <line x1="12" y1="3" x2="12" y2="21" stroke-dasharray="2 2.6"/>
+        </svg>
+        <span>Movies</span>
+      </button>
+      <button class="nav-btn" id="navShows" onclick="switchTab('shows')">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="6.5" width="18" height="13" rx="2.5"/>
+          <path d="M8 3l4 3 4-3"/>
+        </svg>
+        <span>Shows</span>
+      </button>
+    </div>
+  </nav>
+</div>
+
+<script>
+  const MOVIES = [
+    "Iron Man","The Incredible Hulk","Iron Man 2","Thor","Captain America: The First Avenger",
+    "The Avengers","Iron Man 3","Thor: The Dark World","Captain America: The Winter Soldier",
+    "Guardians of the Galaxy","Avengers: Age of Ultron","Ant-Man","Captain America: Civil War",
+    "Doctor Strange","Guardians of the Galaxy Vol. 2","Spider-Man: Homecoming","Thor: Ragnarok",
+    "Black Panther","Avengers: Infinity War","Ant-Man and the Wasp","Captain Marvel",
+    "Avengers: Endgame","Spider-Man: Far From Home","Black Widow",
+    "Shang-Chi and the Legend of the Ten Rings","Eternals","Spider-Man: No Way Home",
+    "Doctor Strange in the Multiverse of Madness","Thor: Love and Thunder",
+    "Black Panther: Wakanda Forever","Ant-Man and the Wasp: Quantumania",
+    "Guardians of the Galaxy Vol. 3","The Marvels","Deadpool & Wolverine",
+    "Captain America: Brave New World","The New Avengers","The Fantastic Four: First Steps",
+    "Spider-Man: Brand New Day"
+  ];
+
+  const SHOWS = [
+    "Daredevil","Jessica Jones","Luke Cage","Iron Fist","The Defenders","The Punisher",
+    "WandaVision","The Falcon and the Winter Soldier","Hawkeye","Loki","Moon Knight",
+    "Ms. Marvel","She-Hulk: Attorney at Law","Echo","Agatha All Along","Daredevil: Born Again",
+    "Ironheart","Wonder Man","Daredevil: Born Again — Season 2","The Punisher: One Last Kill",
+    "VisionQuest"
+  ];
+
+  const FINALE = "Avengers: Doomsday";
+  const STORAGE_KEY = "mcu-watch-state";
+  const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 9 17 20 6"/></svg>';
+
+  let state = { movies: new Array(MOVIES.length).fill(false), shows: new Array(SHOWS.length).fill(false) };
+  let tab = "movies";
+  let resetArmed = false;
+  let resetTimer = null;
+
+  function pad(n){ return String(n).padStart(2,"0"); }
+  function nextIndex(arr){ return arr.findIndex(v => !v); }
+
+  function render(){
+    const titles = tab === "movies" ? MOVIES : SHOWS;
+    const arr = tab === "movies" ? state.movies : state.shows;
+    const nIdx = nextIndex(arr);
+    const watchedCount = arr.filter(Boolean).length;
+
+    document.getElementById("pageTitle").textContent = tab === "movies" ? "Movies" : "Shows";
+    document.getElementById("progressLabel").textContent = watchedCount + " / " + titles.length + " watched";
+    document.getElementById("progressFill").style.width = titles.length ? ((watchedCount/titles.length)*100) + "%" : "0%";
+
+    let html = "";
+    if (watchedCount === titles.length && titles.length > 0) {
+      html += '<div class="celebrate">🎉 All caught up — ready for Doomsday</div>';
+    }
+
+    titles.forEach((title, i) => {
+      const isWatched = arr[i];
+      const isNext = i === nIdx;
+      const cls = isWatched ? "row--watched" : isNext ? "row--next" : (i % 2 === 0 ? "row--a" : "row--b");
+      html += '<div class="row ' + cls + '">'
+        + '<div class="row-left">'
+        + '<span class="row-num">' + pad(i+1) + '</span>'
+        + '<span class="row-title">' + title + '</span>'
+        + (isNext ? '<span class="row-chip">NEXT UP</span>' : '')
+        + '</div>'
+        + '<button class="row-toggle" data-idx="' + i + '" aria-label="' + (isWatched ? "Mark unwatched" : "Mark watched") + '">'
+        + (isWatched ? CHECK_SVG : '')
+        + '</button>'
+        + '</div>';
+    });
+
+    html += '<div class="finale-card">'
+      + '<span class="finale-eyebrow">🏁 The Finale</span>'
+      + '<span class="finale-title">' + FINALE + '</span>'
+      + '</div>'
+      + '<div class="reset-row"><button id="resetBtn" class="reset-link">Reset ' + tab + ' progress</button></div>';
+
+    const listEl = document.getElementById("list");
+    listEl.innerHTML = html;
+
+    listEl.querySelectorAll(".row-toggle").forEach(btn => {
+      btn.addEventListener("click", onToggle);
+    });
+    document.getElementById("resetBtn").addEventListener("click", onResetClick);
+  }
+
+  // Uses Claude's in-chat storage bridge when previewed inside claude.ai;
+  // falls back to localStorage for a real hosted/installed app (GitHub Pages, APK, etc.)
+  async function storageGet(key){
+    if (typeof window.storage !== "undefined" && window.storage && window.storage.get) {
+      try {
+        const res = await window.storage.get(key, false);
+        return res ? res.value : null;
+      } catch (err) {
+        return null;
+      }
+    }
+    try { return localStorage.getItem(key); } catch (err) { return null; }
+  }
+
+  async function storageSet(key, value){
+    if (typeof window.storage !== "undefined" && window.storage && window.storage.set) {
+      try { await window.storage.set(key, value, false); } catch (err) { console.error("Save failed", err); }
+      return;
+    }
+    try { localStorage.setItem(key, value); } catch (err) { console.error("Save failed", err); }
+  }
+
+  async function saveState(){
+    await storageSet(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  function onToggle(e){
+    const idx = parseInt(e.currentTarget.dataset.idx, 10);
+    state[tab][idx] = !state[tab][idx];
+    render();
+    saveState();
+  }
+
+  function onResetClick(e){
+    const btn = e.currentTarget;
+    if (!resetArmed) {
+      resetArmed = true;
+      btn.textContent = "Tap again to confirm reset";
+      btn.classList.add("reset-armed");
+      resetTimer = setTimeout(() => { resetArmed = false; render(); }, 3000);
+    } else {
+      clearTimeout(resetTimer);
+      resetArmed = false;
+      state[tab] = new Array(state[tab].length).fill(false);
+      render();
+      saveState();
+    }
+  }
+
+  function switchTab(newTab){
+    tab = newTab;
+    resetArmed = false;
+    document.getElementById("navMovies").classList.toggle("active", tab === "movies");
+    document.getElementById("navShows").classList.toggle("active", tab === "shows");
+    render();
+  }
+
+  async function init(){
+    try {
+      const raw = await storageGet(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed.movies) && parsed.movies.length === MOVIES.length) state.movies = parsed.movies;
+        if (Array.isArray(parsed.shows) && parsed.shows.length === SHOWS.length) state.shows = parsed.shows;
+      }
+    } catch (err) {
+      // no saved progress yet — defaults stay in place
+    }
+    render();
+  }
+
+  init();
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("service-worker.js").catch(() => {});
+    });
+  }
+</script>
+</body>
+</html>
